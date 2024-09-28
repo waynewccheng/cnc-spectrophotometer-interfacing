@@ -46,7 +46,7 @@ class CNC_GUI:
 
     def updatePos_relative (self, xyz_offset):
         xyz_current = self.cnc.get_current_position()
-        xyz_new = [xyz_current[0] + xyz_offset[0], xyz_current[1] + xyz_offset[1], xyz_current[2] + xyz_offset[2]]
+        xyz_new = [x + y for x , y in zip(xyz_current, xyz_offset)]
         self.cnc.move_xyz_to(xyz_new)
 
     def updatePos_absolute (self, xyz):
