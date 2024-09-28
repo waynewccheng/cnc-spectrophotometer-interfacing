@@ -14,12 +14,17 @@ class Cnc:
 
     port_name = 'COM?'
     msg_welcome = ''
-    debug_serial = False
+    debug_serial = True
 
     def __init__ (self, port_name):
 
         self.s = serial.Serial(port = port_name, baudrate = 115200, timeout = 5)   # establish serial connection with COM8 @ 115200 baud rate
         err_empty = self.serial_read_response_line()
+        print(err_empty)
+        
+        self.serial_send_command("$X")
+        self.serial_read_response_line()
+        
         self.msg_welcome = self.serial_read_response_line()
         
     def close (self):
@@ -38,23 +43,38 @@ class Cnc:
             print("Serial << ", ch)
         return ch
 
-    def move_xyz_to (self, direction, pos):
+    def move_x_y_z_to (self, direction, pos):
         self.serial_send_command(f"G0 {direction}{pos}")
         ch = self.serial_read_response_line()
         if ch != b"ok\r\n":
-            print("Error: expected 'ok' but received something else")
+            print("Error: expected 'ok' but received something else - ")    
+            print(ch)
         else:
-            while cnc.get_current_mode() != "Idle":
+            while self.get_current_mode() != "Idle":
                 # print(cnc.get_current_position())
                 time.sleep(0.1)
 
-    
+
+    def move_xyz_to (self, pos):
+        print(pos)
+        self.serial_send_command(f"G0 X{pos[0]} Y{pos[1]} Z{pos[2]}")
+        ch = self.serial_read_response_line()
+        if ch != b"ok\r\n":
+            print("Error: expected 'ok' but received something else - ")    
+            print(ch)
+        else:
+            while self.get_current_mode() != "Idle":
+                # print(cnc.get_current_position())
+                time.sleep(0.1)
+
+
     def get_status (self):
         self.serial_send_command("?")
         data = self.serial_read_response_line()
         ch = self.serial_read_response_line()
         if ch != b"ok\r\n":
             print("Error: expected 'ok' but received something else")
+            print(ch)
         else:
             return data
         
@@ -71,19 +91,19 @@ class Cnc:
         val = str.split(",")
         return [float(val[0]) , float(val[1]) , float(val[2])]
 
-port_name = 'COM3'
+# port_name = 'COM3'
 
-cnc = Cnc(port_name)
+# cnc = Cnc(port_name)
 
 
-cnc.move_xyz_to("X",20)
-cnc.move_xyz_to("X",0)
-cnc.move_xyz_to("Y",20)
-cnc.move_xyz_to("Y",0)
-cnc.move_xyz_to("Z",2)
-cnc.move_xyz_to("Z",0)
-cnc.get_status()
+# cnc.move_x_y_z_to("X",20)
+# cnc.move_x_y_z_to("X",0)
+# cnc.move_x_y_z_to("Y",20)
+# cnc.move_x_y_z_to("Y",0)
+# cnc.move_x_y_z_to("Z",2)
+# cnc.move_x_y_z_to("Z",0)
+# cnc.get_status()
 
-cnc.close()
+# cnc.close()
 
-print(cnc.msg_welcome)
+# print(cnc.msg_welcome)

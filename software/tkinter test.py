@@ -7,7 +7,7 @@ import time             # timing delays
 import numpy as np      # array mgmt
 import threading        # background processing
 
-s = serial.Serial(port = 'COM8', baudrate = 115200, timeout = 0)   # establish serial connection with COM8 @ 115200 baud rate
+s = serial.Serial(port = 'COM3', baudrate = 115200, timeout = 0)   # establish serial connection with COM8 @ 115200 baud rate
 currentPos = np.array([float(0),float(0),float(0)]) # i don't remember what this is for
 pts = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]) #saved 4 point grid
 measurePts = [] # i should use this instead of pts since it's the same
