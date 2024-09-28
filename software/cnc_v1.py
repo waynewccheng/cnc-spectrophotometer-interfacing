@@ -14,18 +14,29 @@ class Cnc:
 
     port_name = 'COM?'
     msg_welcome = ''
-    debug_serial = True
+    debug_serial = False
+    s = None                           # serial object
 
     def __init__ (self, port_name):
 
-        self.s = serial.Serial(port = port_name, baudrate = 115200, timeout = 5)   # establish serial connection with COM8 @ 115200 baud rate
-        err_empty = self.serial_read_response_line()
-        print(err_empty)
-        
-        self.serial_send_command("$X")
-        self.serial_read_response_line()
-        
-        self.msg_welcome = self.serial_read_response_line()
+        try:
+            self.s = serial.Serial(port = port_name, baudrate = 115200, timeout = 5)   # establish serial connection with COM8 @ 115200 baud rate
+            # the CNC is expected to respond to any command within 5 seconds
+
+            # wait for the CNC to initialize
+            time.sleep(2)   
+            
+    #        self.serial_send_command("$X")
+    #        self.serial_read_response_line()
+            
+            # get the welcome message
+            err_empty = self.serial_read_response_line()
+            self.msg_welcome = self.serial_read_response_line()
+
+        except:
+            print("Error: unable to open serial port")
+            self.s = None
+
         
     def close (self):
         self.s.flush()
@@ -34,11 +45,19 @@ class Cnc:
     def serial_send_command (self, cmd):
         str = cmd + "\r"
         self.s.write(str.encode())
+        
         if self.debug_serial:
             print("Serial >> " + str)
 
+        # add some delay for all commands
+        time.sleep(0.1)
+
     def serial_read_response_line (self):
-        ch = self.s.read_until(b"\r\n")
+        if self.debug_serial:
+            print(f"  bytes in buffer to be read -- {self.s.in_waiting}")
+        
+        ch = self.s.read_until(b"\r\n")     # wait for the expected data to arrive 
+
         if self.debug_serial:
             print("Serial << ", ch)
         return ch

@@ -23,11 +23,15 @@ class CNC_GUI:
     labels = []
     buttons = []
 
-    cnc = cnc_v1.Cnc("COM3")
+    cnc = None
 
+    port_name = ""
+
+    def __init__ (self, port_name):
+        self.port_name = port_name
 
     #
-    # CNC
+    # CNC related methods
     #
     def setPos (self, p): # sets position for p1-p4 buttons
         xyz_current = self.cnc.get_current_position()
@@ -38,7 +42,7 @@ class CNC_GUI:
     def moveToPoints(self, points):
         for y in range(len(points[0])):
             for x in range(len(points)):
-                print(f"X{points[x][y][0]} Y{points[x][y][1]}")
+                print(f"Moving to: X{points[x][y][0]} Y{points[x][y][1]}")
                 z_current = 0;
                 xyz = [points[x][y][0], points[x][y][1], z_current]
                 self.updatePos_absolute(xyz)
@@ -53,7 +57,7 @@ class CNC_GUI:
         self.cnc.move_xyz_to(xyz)
 
     #
-    # Chart
+    # Chart related methods
     #
     def calculateMatrix (self):
         self.pts[4][0] = self.inputs[1][0].get("1.0","end-1c") # Y - split
@@ -78,7 +82,7 @@ class CNC_GUI:
         self.moveToPoints(measurePts)
 
     #
-    # GUI
+    # GUI related methods
     #
 
     def updateInc (self): # updates increments for the increment button
@@ -147,13 +151,15 @@ class CNC_GUI:
         #
         # main
         #
+        self.cnc = cnc_v1.Cnc(self.port_name)
+
         self.cnc.move_x_y_z_to("X", 0)
         self.cnc.move_x_y_z_to("X", 1)
 
         gui.mainloop()
 
-        self.close()
+        self.cnc.close()
 
 
-i = CNC_GUI()
-i.main()
+i = CNC_GUI("COM3")
+i.main()    
