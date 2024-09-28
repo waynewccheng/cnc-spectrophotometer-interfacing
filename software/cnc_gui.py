@@ -15,9 +15,9 @@ class CNC_GUI:
     currentState = "idle"
 
     btn_text = ""
-    currPosStr = ""
-    currPosStr = []
+    currPosStr = None
     ptsText = ""
+    lbl_current_pos = None
 
     inputs = []
     labels = []
@@ -52,9 +52,11 @@ class CNC_GUI:
         xyz_current = self.cnc.get_current_position()
         xyz_new = [x + y for x , y in zip(xyz_current, xyz_offset)]
         self.cnc.move_xyz_to(xyz_new)
+        self.update_current_position()
 
     def updatePos_absolute (self, xyz):
         self.cnc.move_xyz_to(xyz)
+        self.update_current_position()
 
     #
     # Chart related methods
@@ -88,7 +90,7 @@ class CNC_GUI:
     def updateInc (self): # updates increments for the increment button
         for x in range(len(self.increments)):
             if(self.inc == self.increments[x]):
-                self.inc = self.increments[(x + 1)%len(self.increments)]
+                self.inc = self.increments[(x + 1) % len(self.increments)]
                 break
         self.btn_text.set(f"Increment : {self.inc}")
 
@@ -96,19 +98,39 @@ class CNC_GUI:
         for x in range(len(group)):
             group[x][0].place(x = group[x][1], y = group[x][2])
 
+    def update_current_position (self):
+        xyz = self.cnc.get_current_position()
+        str = f"{xyz[0]:.3f}, {xyz[1]:.3f}, {xyz[2]:.3f}"
+        self.currPosStr.set(str)
 
     def main (self):
+
+        #
+        # start CNC first because the GUI needs it
+        #
+        self.cnc = cnc_v1.Cnc(self.port_name)
+
+        self.cnc.move_x_y_z_to("X", 0)
+        self.cnc.move_x_y_z_to("X", 1)
+        self.cnc.move_x_y_z_to("X", 0)
+
+        #
+        # GUI
 
         gui = tk.Tk() # initialize gui
         gui.title("CNC GUI Controller")
         gui.geometry("450x350")
 
-        self.btn_text, self.currPosStr = tk.StringVar(), tk.StringVar() #texts with variable strings!
-        self.currPosStr.set("0.000, 0.000, 0.000")
+        self.btn_text = tk.StringVar()
+        self.currPosStr = tk.StringVar() #texts with variable strings!
+        self.currPosStr.set("---, ---, ---")
         self.ptsText = [tk.StringVar(),tk.StringVar(),tk.StringVar(),tk.StringVar(), tk.StringVar()]
 
         for x in range(len(self.ptsText)):
             self.ptsText[x].set(f"P{x+1}")
+
+        self.lbl_current_pos = tk.Label(gui, textvariable = self.currPosStr) #current position label
+        self.lbl_current_pos.place(x = 300, y = 75)
 
         self.buttons = [
             [tk.Button(gui, text = "left" , command = lambda : self.updatePos_relative([-self.inc, 0, 0]), height = 2, width = 5) , 25, 75], #6 movement buttons
@@ -126,7 +148,6 @@ class CNC_GUI:
             [tk.Button(gui, text = "P2", command = lambda : self.updatePos_absolute(self.pts[1]), height = 1, width = 4), 72, 300],
             [tk.Button(gui, text = "P3", command = lambda : self.updatePos_absolute(self.pts[2]), height = 1, width = 4), 119, 300],
             [tk.Button(gui, text = "P4", command = lambda : self.updatePos_absolute(self.pts[3]), height = 1, width = 4), 166, 300],
-            [tk.Button(gui, textvariable = self.currPosStr, height = 2, width = 15), 300, 75], #get current position -> should be turned into a label 
             [tk.Button(gui, text = "CALC", command = lambda : self.calculateMatrix()), 300, 200] #calculate matrix
         ]
 
@@ -147,18 +168,8 @@ class CNC_GUI:
         self.placeGroup(self.inputs)
         self.placeGroup(self.labels)
 
-
-        #
-        # main
-        #
-        self.cnc = cnc_v1.Cnc(self.port_name)
-
-        self.cnc.move_x_y_z_to("X", 0)
-        self.cnc.move_x_y_z_to("X", 1)
-
         gui.mainloop()
 
-        self.cnc.close()
 
 
 i = CNC_GUI("COM3")

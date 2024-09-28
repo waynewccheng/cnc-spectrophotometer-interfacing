@@ -15,10 +15,20 @@ class Cnc:
     port_name = 'COM?'
     msg_welcome = ''
     debug_serial = False
-    s = None                           # serial object
+    s = None                           # serial port object
 
     def __init__ (self, port_name):
+        self.port_name = port_name
+        self.serial_open(port_name)
 
+    def __del__ (self):
+        self.serial_close()
+       
+    #
+    # Serial port related methods
+    #     
+
+    def serial_open (self, port_name):
         try:
             self.s = serial.Serial(port = port_name, baudrate = 115200, timeout = 5)   # establish serial connection with COM8 @ 115200 baud rate
             # the CNC is expected to respond to any command within 5 seconds
@@ -37,8 +47,7 @@ class Cnc:
             print("Error: unable to open serial port")
             self.s = None
 
-        
-    def close (self):
+    def serial_close (self):
         self.s.flush()
         self.s.close()
 
@@ -62,6 +71,9 @@ class Cnc:
             print("Serial << ", ch)
         return ch
 
+    # 
+    # CNC related methods
+    #
     def move_x_y_z_to (self, direction, pos):
         self.serial_send_command(f"G0 {direction}{pos}")
         ch = self.serial_read_response_line()
@@ -73,9 +85,7 @@ class Cnc:
                 # print(cnc.get_current_position())
                 time.sleep(0.1)
 
-
     def move_xyz_to (self, pos):
-        print(pos)
         self.serial_send_command(f"G0 X{pos[0]} Y{pos[1]} Z{pos[2]}")
         ch = self.serial_read_response_line()
         if ch != b"ok\r\n":
@@ -85,7 +95,6 @@ class Cnc:
             while self.get_current_mode() != "Idle":
                 # print(cnc.get_current_position())
                 time.sleep(0.1)
-
 
     def get_status (self):
         self.serial_send_command("?")
@@ -110,10 +119,12 @@ class Cnc:
         val = str.split(",")
         return [float(val[0]) , float(val[1]) , float(val[2])]
 
-# port_name = 'COM3'
+
+#
+# Test code
+#
 
 # cnc = Cnc(port_name)
-
 
 # cnc.move_x_y_z_to("X",20)
 # cnc.move_x_y_z_to("X",0)
@@ -123,6 +134,6 @@ class Cnc:
 # cnc.move_x_y_z_to("Z",0)
 # cnc.get_status()
 
-# cnc.close()
+# cnc.serial_close()
 
 # print(cnc.msg_welcome)
