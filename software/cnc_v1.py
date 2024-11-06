@@ -69,6 +69,12 @@ class Cnc:
 
         if self.debug_serial:
             print("Serial << ", ch)
+
+        # check for async messages    
+        if ch[0] == '[':
+            print("!!! Error message !!!")
+            print(ch)
+          
         return ch
 
     # 

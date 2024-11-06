@@ -110,9 +110,18 @@ class CNC_GUI:
         #
         self.cnc = cnc_v1.Cnc(self.port_name)
 
+        #
+        # greeting
+        #         
         self.cnc.move_x_y_z_to("X", 0)
         self.cnc.move_x_y_z_to("X", 1)
         self.cnc.move_x_y_z_to("X", 0)
+        self.cnc.move_x_y_z_to("Y", 0)
+        self.cnc.move_x_y_z_to("Y", 1)
+        self.cnc.move_x_y_z_to("Y", 0)
+        self.cnc.move_x_y_z_to("Z", 0)
+        self.cnc.move_x_y_z_to("Z", 1)
+        self.cnc.move_x_y_z_to("Z", 0)
 
         #
         # GUI
@@ -167,6 +176,9 @@ class CNC_GUI:
         self.placeGroup(self.buttons) #create buttons, inputs and labels
         self.placeGroup(self.inputs)
         self.placeGroup(self.labels)
+
+        # initial update of current position
+        self.update_current_position() #update current position
 
         gui.mainloop()
 
